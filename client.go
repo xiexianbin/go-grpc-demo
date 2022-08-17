@@ -18,20 +18,83 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"time"
 
 	googlerpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	dgrpc "github.com/xiexianbin/go-rpc-demo/grpc"
 )
 
+var (
+	ch             bool
+	rootCACrtPath2 string
+	clientCrtPath  string
+	clientKeyPath  string
+)
+
+func init() {
+	flag.BoolVar(&ch, "help", false, "show help message")
+	flag.StringVar(&rootCACrtPath2, "ca-crt", "", "ca crt file path")
+	flag.StringVar(&clientCrtPath, "client-crt", "", "client crt file path")
+	flag.StringVar(&clientKeyPath, "client-key", "", "client key file path")
+
+	flag.Usage = func() {
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+}
+
+func loadClientTSLCert() (credentials.TransportCredentials, error) {
+	caPEMFile, err := ioutil.ReadFile(rootCACrtPath2)
+	if err != nil {
+		return nil, err
+	}
+
+	caPool := x509.NewCertPool()
+	if !caPool.AppendCertsFromPEM(caPEMFile) {
+		return nil, fmt.Errorf("load %s cert fail", rootCACrtPath2)
+	}
+
+	localCert, err := tls.LoadX509KeyPair(clientCrtPath, clientKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("load client cert and key file fail: %s", err.Error())
+	}
+
+	config := &tls.Config{
+		Certificates: []tls.Certificate{localCert},
+		ServerName:   "localhost", // client cn name
+		RootCAs:      caPool,
+	}
+
+	return credentials.NewTLS(config), nil
+}
+
 func main() {
-	//creds := credentials.NewTLS(nil)
-	//cc, err := googlerpc.Dial("127.0.0.1:8000", googlerpc.WithTransportCredentials(creds))
-	cc, err := googlerpc.Dial("127.0.0.1:8000", googlerpc.WithTransportCredentials(insecure.NewCredentials()))
+	if ch == true {
+		flag.Usage()
+		return
+	}
+
+	var creds credentials.TransportCredentials
+	var err error
+	if rootCACrtPath2 != "" && clientCrtPath != "" && clientKeyPath != "" {
+		creds, err = loadClientTSLCert()
+		if err != nil {
+			log.Fatalf("load client cert err: %s", err.Error())
+		}
+	} else {
+		creds = insecure.NewCredentials()
+	}
+	cc, err := googlerpc.Dial("127.0.0.1:8000", googlerpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatalf("cannot dial server %v", err)
 	}
