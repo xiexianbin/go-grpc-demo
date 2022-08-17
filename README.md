@@ -1,6 +1,6 @@
 # go-rpc-demo
 
-golang rpc demo
+golang grpc demo
 
 ## start server
 

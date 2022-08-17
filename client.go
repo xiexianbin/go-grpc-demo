@@ -17,37 +17,61 @@ limitations under the License.
 package main
 
 import (
-    "fmt"
-    "net/rpc/jsonrpc"
-    "os"
+	"context"
+	"log"
+	"time"
 
-    "github.com/xiexianbin/go-rpc-demo/objects"
+	googlerpc "google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/emptypb"
+
+	dgrpc "github.com/xiexianbin/go-rpc-demo/grpc"
 )
 
 func main() {
-    // get dial
-    serverAddr := "127.0.0.1:8000"
-    dial, err := jsonrpc.Dial("tcp", serverAddr)
-    if err != nil {
-        fmt.Println(err.Error())
-        os.Exit(-1)
-    }
-    defer dial.Close()
+	//creds := credentials.NewTLS(nil)
+	//cc, err := googlerpc.Dial("127.0.0.1:8000", googlerpc.WithTransportCredentials(creds))
+	cc, err := googlerpc.Dial("127.0.0.1:8000", googlerpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("cannot dial server %v", err)
+	}
+	defer cc.Close()
 
-    // params definition
-    req := objects.Request{
-        Num1: 1,
-        Num2: 2,
-    }
-    var resp objects.Response
+	rpcClient := dgrpc.NewServiceClient(cc)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-    // remote call
-    err = dial.Call("Calculate.Sum", &req, &resp)
-    if err != nil {
-        fmt.Println(err.Error())
-        os.Exit(-1)
-    }
+	// version
+	version, err := rpcClient.Version(ctx, &emptypb.Empty{})
+	if err != nil {
+		log.Fatalf("error happen when call gRPC client: %s", err.Error())
+	}
+	log.Printf("version: %s", version)
 
-    // print result
-    fmt.Println(resp.Result)
+	// sum
+	nums := &dgrpc.NumRequest{
+		Nums: []int64{1, 2},
+	}
+	sum, err := rpcClient.Sum(ctx, nums)
+	if err != nil {
+		log.Fatalf("error happen when call gRPC client: %s", err.Error())
+	}
+	log.Printf("sum: %s", sum)
+
+	// diff
+	diff, err := rpcClient.Diff(ctx, nums)
+	if err != nil {
+		log.Fatalf("error happen when call gRPC client: %s", err.Error())
+	}
+	log.Printf("diff: %s", diff)
+
+	// read file
+	filePath := &dgrpc.FilePath{
+		Path: "/etc/hosts",
+	}
+	fileContent, err := rpcClient.ReadFile(ctx, filePath)
+	if err != nil {
+		log.Fatalf("error happen when call gRPC client: %s", err.Error())
+	}
+	log.Printf("fileContent: %s", fileContent)
 }

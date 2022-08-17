@@ -17,56 +17,35 @@ limitations under the License.
 package main
 
 import (
-    "log"
-    "net"
-    "net/rpc"
-    "net/rpc/jsonrpc"
-    "os"
+	googlerpc "google.golang.org/grpc"
+	"log"
+	"net"
 
-    "github.com/xiexianbin/go-rpc-demo/objects"
+	dgrpc "github.com/xiexianbin/go-rpc-demo/grpc"
+	dgrpcserver "github.com/xiexianbin/go-rpc-demo/grpc/server"
 )
 
+var server = &dgrpcserver.DemoServiceServer{}
+
 func main() {
-    // Register RPC publishes
-    err := rpc.Register(&objects.Calculate{})
-    if err != nil {
-        log.Println(err.Error())
-        os.Exit(-1)
-    }
+	// Listener
+	addr := ":8000"
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	defer func(listener net.Listener) {
+		err := listener.Close()
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		log.Println("grpc server closed.")
+	}(listener)
 
-    // Listener
-    addr := ":8000"
-    listener, err := net.Listen("tcp", addr)
-    if err != nil {
-        log.Println(err)
-        os.Exit(-1)
-    }
-    log.Println("rpc server listen on", listener.Addr())
-    defer func(listener net.Listener) {
-        err := listener.Close()
-        if err != nil {
-            log.Println(err.Error())
-            os.Exit(-1)
-        }
-        log.Println("rpc server closed.")
-    }(listener)
-
-    // listen actions
-    for {
-        conn, err := listener.Accept()
-        if err != nil {
-            log.Println(err)
-            return
-        }
-        go func(conn net.Conn) {
-            log.Println("get connect from", conn.RemoteAddr())
-            defer func(conn net.Conn) {
-                _ = conn.Close()
-                log.Printf("client %s closed.\n", conn.RemoteAddr())
-            }(conn)
-
-            // jsonrpc handler Client action
-            jsonrpc.ServeConn(conn)
-        }(conn)
-    }
+	var s = googlerpc.NewServer()
+	dgrpc.RegisterServiceServer(s, server)
+	log.Println("grpc server listen on", listener.Addr())
+	if err := s.Serve(listener); err != nil {
+		log.Fatalf("failed to start grpc server: %v", err)
+	}
 }
