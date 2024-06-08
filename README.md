@@ -72,6 +72,47 @@ $ go run ./main.go
 2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:9
 ```
 
+### tls
+
+```
+# generate tls key and cert to cmd/tls/server.{key, crt}
+$ make tls
+...
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
+Email Address []:
+
+# server
+$ cd cmd/tls/server
+$ go run ./main.go --help
+  -help
+        show help message
+  -server-crt string
+        server crt file path
+  -server-key string
+        server key file path
+$ go run main.go -server-crt ../server.crt -server-key ../server.key
+
+# client
+$ cd cmd/tls/client
+$ go run main.go --help
+  -client-crt string
+        client crt file path
+  -client-key string
+        client key file path
+  -help
+        show help message
+$ go run main.go -client-crt ../server.crt -client-key ../server.key
+2024/06/09 00:50:11 version: Version:"v0.1.0"
+2024/06/09 00:50:11 sum: Result:3
+2024/06/09 00:50:11 diff: Result:-1
+2024/06/09 00:50:11 fileContent: content:"..."
+```
+
 ## creat TSL cert(option)
 
 install and use [xca](https://github.com/x-ca/go-ca) to create tsl cert.
