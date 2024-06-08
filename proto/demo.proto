@@ -1,8 +1,8 @@
 syntax = "proto3";
 import "google/protobuf/empty.proto";
 
-package main;
-option go_package = "github.com/xiexianbin/go-rpc-demo/grpc";
+package proto;
+option go_package = "github.com/xiexianbin/go-grpc-demo/proto";
 
 message NumRequest {
     repeated int64 Nums = 1;

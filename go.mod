@@ -1,6 +1,6 @@
 module github.com/xiexianbin/go-rpc-demo
 
-go 1.17
+go 1.21
 
 require (
 	google.golang.org/grpc v1.48.0
