@@ -35,7 +35,7 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewServiceClient(conn)
+	client := pb.NewDemoServiceClient(conn)
 	resp, err := client.Sum(context.Background(), &pb.NumRequest{
 		Nums: []int64{1, 2},
 	})

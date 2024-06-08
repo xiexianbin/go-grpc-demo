@@ -24,7 +24,7 @@ message FileResponse {
     bytes content = 1;
 }
 
-service Service {
+service DemoService {
     rpc Sum(NumRequest) returns (NumResponse) {}
     rpc Diff(NumRequest) returns (NumResponse) {}
 

@@ -1,6 +1,76 @@
-# go-rpc-demo
+# go-grpc-demo
 
 golang grpc demo
+
+## Usage
+
+### simple
+
+```
+# server
+$ cd cmd/simple/server
+$ go run ./main.go
+2024/06/08 22:49:09 listen at 0.0.0.0:8000
+
+# client
+$ cd cmd/simple/client
+$ go run main.go
+2024/06/08 22:49:23 sum: 3
+```
+
+### stream server
+
+```
+# server
+$ cd cmd/stream_server/server
+$ go run ./main.go
+2024/06/09 00:11:02 listen at 0.0.0.0:8000
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Record resp pt: name:"callRecord"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+2024/06/09 00:11:07 StreamService.Route pt: name:"callRoute"
+
+# client
+$ cd cmd/stream_server/client
+$ go run ./main.go
+2024/06/09 00:11:07 callList resp pt: name:"callList"
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:1
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:2
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:3
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:4
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:5
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:6
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:7
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:8
+2024/06/09 00:11:07 callList resp pt: name:"callList" value:9
+2024/06/09 00:11:07 callRecord resp pt: name:"gRPC Stream Server: Record" value:-1
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route"
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:1
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:2
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:3
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:4
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:5
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:6
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:7
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:8
+2024/06/09 00:11:07 callRoute resp pt: name:"gPRC StreamService: Route" value:9
+```
 
 ## creat TSL cert(option)
 
