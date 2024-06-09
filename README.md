@@ -113,7 +113,108 @@ $ go run main.go -client-crt ../server.crt -client-key ../server.key
 2024/06/09 00:50:11 fileContent: content:"..."
 ```
 
-## creat TSL cert(option)
+### ca & tls
+
+```
+
+$ tree cmd/ca/conf
+cmd/ca/conf
+├── ca.key
+├── ca.pem
+├── ca.srl
+├── client
+│   ├── client.crt
+│   ├── client.csr
+│   └── client.key
+└── server
+    ├── server.crt
+    ├── server.csr
+    └── server.key
+
+3 directories, 9 files
+```
+
+#### by self-ca
+
+```
+make self-ca
+mkdir -p cmd/ca/conf/{client,server}
+echo "create ca ..."
+create ca ...
+openssl genrsa -out cmd/ca/conf/ca.key 2048
+openssl req -new -x509 -days 7200 -key cmd/ca/conf/ca.key -out cmd/ca/conf/ca.pem
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:
+Email Address []:
+echo "subjectAltName = @alt_names\n\n[alt_names]\nDNS.1 = go-grpc-demo" > cmd/ca/conf/san.cnf
+echo "create server crt ..."
+create server crt ...
+openssl ecparam -genkey -name secp384r1 -out cmd/ca/conf/server/server.key
+openssl req -new -key cmd/ca/conf/server/server.key -out cmd/ca/conf/server/server.csr # -addext "subjectAltName = DNS:go-grpc-demo"
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+openssl x509 -req -sha256 -CA cmd/ca/conf/ca.pem -CAkey cmd/ca/conf/ca.key -CAcreateserial -days 3650 -in cmd/ca/conf/server/server.csr -out cmd/ca/conf/server/server.crt -extfile cmd/ca/conf/san.cnf
+Certificate request self-signature ok
+subject=C=AU, ST=Some-State, O=Internet Widgits Pty Ltd, CN=go-grpc-demo
+echo "create client crt ..."
+create client crt ...
+openssl ecparam -genkey -name secp384r1 -out cmd/ca/conf/client/client.key
+openssl req -new -key cmd/ca/conf/client/client.key -out cmd/ca/conf/client/client.csr # -addext "subjectAltName = DNS:go-grpc-demo"
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+openssl x509 -req -sha256 -CA cmd/ca/conf/ca.pem -CAkey cmd/ca/conf/ca.key -CAcreateserial -days 3650 -in cmd/ca/conf/client/client.csr -out cmd/ca/conf/client/client.crt -extfile cmd/ca/conf/san.cnf
+Certificate request self-signature ok
+subject=C=AU, ST=Some-State, O=Internet Widgits Pty Ltd, CN=go-grpc-demo
+```
+
+#### by xca
+
+- creat TSL cert(option)
 
 install and use [xca](https://github.com/x-ca/go-ca) to create tsl cert.
 
@@ -140,22 +241,60 @@ xca -cn client \
   -tls-key x-ca/ca/tls-ca/private/tls-ca.key
 ```
 
-## start server
+### start server
 
 ```
-# no tsl
-go run server.go
+# self-ca
+$ cd cmd/ca/server
+$ go run ./main.go --help
+  -ca-crt string
+    	ca crt file path
+  -help
+    	show help message
+  -server-crt string
+    	server crt file path
+  -server-key string
+    	server key file path
+$ go run ./main.go -ca-crt ../conf/ca.pem -server-crt ../conf/server/server.crt -server-key ../con
+f/server/server.key
+2024/06/09 11:59:13 grpc server listen on [::]:8000
 
-# tsl
+# xca
 go run server.go -ca-crt ./x-ca/ca/root-ca.crt -server-crt ./x-ca/certs/server/server.bundle.crt -server-key ./x-ca/certs/server/server.key
 ```
 
-## run client
+### start client
 
 ```
-# no tsl
-go run client.go
+# self-ca
+$ cd cmd/ca/client
+$ go run ./main.go --help
+  -ca-crt string
+    	ca crt file path
+  -client-crt string
+    	client crt file path
+  -client-key string
+    	client key file path
+  -help
+    	show help message
+$ go run ./main.go -ca-crt ../conf/ca.pem -client-crt ../conf/client/client.crt -client-key ../conf/client/client.key
+2024/06/09 13:01:05 version: Version:"v0.1.0"
+2024/06/09 13:01:05 sum: Result:3
+2024/06/09 13:01:05 diff: Result:-1
+2024/06/09 13:01:05 fileContent: content:"..."
 
 # tsl
 go run client.go -ca-crt ./x-ca/ca/root-ca.crt -client-crt ./x-ca/certs/client/client.bundle.crt -client-key ./x-ca/certs/client/client.key
 ```
+
+## F&Q
+
+### certificate relies on legacy Common Name field, use SANs instead
+
+```
+1. code = Unavailable desc = connection error: desc = "transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate is not valid for any names, but wanted to match go-grpc-demo"
+
+2. code = Unavailable desc = connection error: desc = "transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
+```
+
+- add `-addext "subjectAltName = DNS:go-grpc-demo"` when run `openssl req` to generate crt

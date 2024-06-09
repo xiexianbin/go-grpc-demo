@@ -72,7 +72,7 @@ func main() {
 		}
 		log.Println("grpc server closed.")
 	}(listener)
-	log.Printf("listen at %s", addr)
+	log.Println("grpc server listen on", listener.Addr())
 
 	server.Serve(listener)
 }

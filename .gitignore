@@ -19,3 +19,8 @@
 .idea/
 .history/
 .lh/
+*.crt
+*.csr
+*.srl
+*.key
+*.pem
