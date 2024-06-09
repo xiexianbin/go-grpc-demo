@@ -364,6 +364,21 @@ $ go run main.go
 2024/06/09 20:49:15 sum: 3
 ```
 
+### simple_deadline
+
+```
+# server
+$ cd cmd/simple_deadline/server
+$ go run ./main.go
+2024/06/09 20:59:31 listen at 0.0.0.0:8000
+
+# client
+$ cd cmd/simple_deadline/client
+$ go run ./main.go
+2024/06/09 20:59:50 err: 4: context deadline exceeded
+exit status 1
+```
+
 ## F&Q
 
 ### certificate relies on legacy Common Name field, use SANs instead

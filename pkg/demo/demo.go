@@ -21,7 +21,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/xiexianbin/go-grpc-demo/pkg/util"
@@ -33,6 +36,13 @@ type DemoServiceServer struct {
 }
 
 func (s *DemoServiceServer) Sum(ctx context.Context, numRequest *pb.NumRequest) (*pb.NumResponse, error) {
+	for i := 0; i < 5; i++ {
+		if ctx.Err() == context.Canceled {
+			return nil, status.Errorf(codes.Canceled, "canceled by client")
+		}
+		time.Sleep(1 * time.Second)
+	}
+
 	numResponse := &pb.NumResponse{
 		Result: numRequest.Nums[0] + numRequest.Nums[1],
 	}
