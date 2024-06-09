@@ -1,5 +1,5 @@
 /*
-Copyright [2022] [xiexianbin.cn]
+Copyright [2024] [xiexianbin.cn]
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,6 +33,7 @@ func main() {
 			interceptor.RecoveryInterceptor,
 			interceptor.LogInterceptor,
 		),
+		// grpc.ChainStreamInterceptor()
 	}
 	server := grpc.NewServer(opts...)
 	pb.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})

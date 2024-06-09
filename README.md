@@ -302,6 +302,51 @@ $ go run main.go
 2024/06/09 19:49:05 sum: 3
 ```
 
+### simple_http: gRPC & http Server
+
+```
+# generate tls key and cert to cmd/tls/server.{key, crt}
+$ make tls
+...
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
+Email Address []:
+
+$ mv cmd/tls/server.{key, crt} cmd/simple_http
+
+# server
+$ cd cmd/simple_http/server
+$ go run ./main.go --help
+  -help
+        show help message
+  -server-crt string
+        server crt file path
+  -server-key string
+        server key file path
+$ go run main.go -server-crt ../server.crt -server-key ../server.key
+2024/06/09 20:29:32 application/grpc
+
+# client
+$ cd cmd/simple_http/client
+$ go run main.go --help
+  -client-crt string
+        client crt file path
+  -client-key string
+        client key file path
+  -help
+        show help message
+$ go run main.go -client-crt ../server.crt -client-key ../server.key
+2024/06/09 20:29:32 sum: 3
+
+$ curl 127.0.0.1:8000
+hello word!
+```
+
+
 ## F&Q
 
 ### certificate relies on legacy Common Name field, use SANs instead
@@ -313,3 +358,7 @@ $ go run main.go
 ```
 
 - add `-addext "subjectAltName = DNS:go-grpc-demo"` when run `openssl req` to generate crt
+
+### code = Unavailable desc = connection error: desc = "error reading server preface: http2: frame too large"
+
+use TLS
