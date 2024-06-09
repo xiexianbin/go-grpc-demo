@@ -346,6 +346,23 @@ $ curl 127.0.0.1:8000
 hello word!
 ```
 
+### simple_auth
+
+```
+# server
+$ cd cmd/simple_auth/server
+$ go run ./main.go
+2024/06/09 20:49:12 listen at 0.0.0.0:8000
+token: {foo bar}
+
+# client
+$ cd cmd/simple_auth/client
+$ go run main.go
+2024/06/09 20:48:44 rpc error: code = Unauthenticated desc = bad key or secret
+exit status 1
+$ go run main.go
+2024/06/09 20:49:15 sum: 3
+```
 
 ## F&Q
 
