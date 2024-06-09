@@ -102,11 +102,9 @@ $ cd cmd/simple_tls/client
 $ go run main.go --help
   -client-crt string
         client crt file path
-  -client-key string
-        client key file path
   -help
         show help message
-$ go run main.go -client-crt ../server.crt -client-key ../server.key
+$ go run main.go -client-crt ../server.crt
 2024/06/09 00:50:11 version: Version:"v0.1.0"
 2024/06/09 00:50:11 sum: Result:3
 2024/06/09 00:50:11 diff: Result:-1

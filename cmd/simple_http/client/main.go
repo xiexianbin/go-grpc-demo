@@ -23,6 +23,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	pb "github.com/xiexianbin/go-grpc-demo/proto"
 )
@@ -30,13 +31,11 @@ import (
 var (
 	h             bool
 	clientCrtPath string
-	clientKeyPath string
 )
 
 func init() {
 	flag.BoolVar(&h, "help", false, "show help message")
 	flag.StringVar(&clientCrtPath, "client-crt", "", "client crt file path")
-	flag.StringVar(&clientKeyPath, "client-key", "", "client key file path")
 
 	flag.Usage = func() {
 		flag.PrintDefaults()
@@ -50,9 +49,15 @@ func main() {
 		return
 	}
 
-	crt, err := credentials.NewClientTLSFromFile(clientCrtPath, "go-grpc-demo")
-	if err != nil {
-		log.Panicf("load tls failed, %s", err)
+	var err error
+	var crt credentials.TransportCredentials
+	if clientCrtPath != "" {
+		crt, err = credentials.NewClientTLSFromFile(clientCrtPath, "go-grpc-demo")
+		if err != nil {
+			log.Panicf("load tls failed, %s", err)
+		}
+	} else {
+		crt = credentials.TransportCredentials(insecure.NewCredentials())
 	}
 
 	conn, err := grpc.NewClient("127.0.0.1:8000", grpc.WithTransportCredentials(crt))

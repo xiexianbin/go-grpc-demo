@@ -22,8 +22,11 @@ import (
 	"net/http"
 	"strings"
 
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
 	pb "github.com/xiexianbin/go-grpc-demo/proto"
@@ -52,9 +55,15 @@ func main() {
 		return
 	}
 
-	crt, err := credentials.NewServerTLSFromFile(serverCrtPath, serverKeyPath)
-	if err != nil {
-		log.Panicf("load tls failed, %s", err)
+	var err error
+	var crt credentials.TransportCredentials
+	if serverCrtPath != "" && serverKeyPath != "" {
+		crt, err = credentials.NewServerTLSFromFile(serverCrtPath, serverKeyPath)
+		if err != nil {
+			log.Panicf("load tls failed, %s", err)
+		}
+	} else {
+		crt = credentials.TransportCredentials(insecure.NewCredentials())
 	}
 
 	// gRPC method
@@ -70,12 +79,23 @@ func main() {
 	// Listener
 	addr := "0.0.0.0:8000"
 	log.Printf("listen at %s", addr)
-	http.ListenAndServeTLS(addr, serverCrtPath, serverKeyPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Header.Get("Content-Type"))
-		if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
-			server.ServeHTTP(w, r)
-		} else {
-			mux.ServeHTTP(w, r)
-		}
-	}))
+	if serverCrtPath != "" && serverKeyPath != "" {
+		http.ListenAndServeTLS(addr, serverCrtPath, serverKeyPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			log.Println(r.Header.Get("Content-Type"))
+			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+				server.ServeHTTP(w, r)
+			} else {
+				mux.ServeHTTP(w, r)
+			}
+		}))
+	} else {
+		// use h2c without tls by HTTP/2
+		http.ListenAndServe(addr, h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
+				server.ServeHTTP(w, r)
+			} else {
+				mux.ServeHTTP(w, r)
+			}
+		}), &http2.Server{}))
+	}
 }
