@@ -241,7 +241,7 @@ xca -cn client \
   -tls-key x-ca/ca/tls-ca/private/tls-ca.key
 ```
 
-### start server
+#### start server
 
 ```
 # self-ca
@@ -263,7 +263,7 @@ f/server/server.key
 go run server.go -ca-crt ./x-ca/ca/root-ca.crt -server-crt ./x-ca/certs/server/server.bundle.crt -server-key ./x-ca/certs/server/server.key
 ```
 
-### start client
+#### start client
 
 ```
 # self-ca
@@ -285,6 +285,21 @@ $ go run ./main.go -ca-crt ../conf/ca.pem -client-crt ../conf/client/client.crt 
 
 # tsl
 go run client.go -ca-crt ./x-ca/ca/root-ca.crt -client-crt ./x-ca/certs/client/client.bundle.crt -client-key ./x-ca/certs/client/client.key
+```
+
+### simple_interceptor
+
+```
+$ cd cmd/simple_interceptor/server
+$ go run main.go
+2024/06/09 19:48:49 listen at 0.0.0.0:8000
+2024/06/09 19:49:05 gRPC method: /proto.DemoService/Sum, req: Nums:1 Nums:2
+2024/06/09 19:49:05 gRPC method: /proto.DemoService/Sum, resp: Result:3
+
+# client
+$ cd cmd/simple_interceptor/client
+$ go run main.go
+2024/06/09 19:49:05 sum: 3
 ```
 
 ## F&Q
