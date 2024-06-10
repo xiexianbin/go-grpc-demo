@@ -28,3 +28,11 @@ self-ca:
 	openssl ecparam -genkey -name secp384r1 -out cmd/simple_ca/conf/client/client.key
 	openssl req -new -key cmd/simple_ca/conf/client/client.key -out cmd/simple_ca/conf/client/client.csr # -addext "subjectAltName = DNS:go-grpc-demo"
 	openssl x509 -req -sha256 -CA cmd/simple_ca/conf/ca.pem -CAkey cmd/simple_ca/conf/ca.key -CAcreateserial -days 3650 -in cmd/simple_ca/conf/client/client.csr -out cmd/simple_ca/conf/client/client.crt -extfile cmd/simple_ca/conf/san.cnf
+
+.PHONY: buf
+buf:
+	go install \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway \
+		github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2 \
+		google.golang.org/protobuf/cmd/protoc-gen-go \
+		google.golang.org/grpc/cmd/protoc-gen-go-grpc
