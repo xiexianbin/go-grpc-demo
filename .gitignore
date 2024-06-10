@@ -15,5 +15,12 @@
 # vendor/
 
 # self
+.DS_Store
 .idea/
 .history/
+.lh/
+*.crt
+*.csr
+*.srl
+*.key
+*.pem
