@@ -1,0 +1,20 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    - file_option: go_package_prefix
+      value: github.com/xiexianbin/go-grpc-demo/gen/go
+plugins:
+  # Use protoc-gen-go at v1.31.0
+  - remote: buf.build/protocolbuffers/go:v1.31.0
+    out: gen/go
+    opt: paths=source_relative
+  # Use protoc-gen-go-grpc at v1.4.0
+  - remote: buf.build/grpc/go:v1.4.0
+    out: gen/go
+    opt: paths=source_relative
+  # - remote: buf.build/connectrpc/go
+  #   out: gen
+  #   opt: paths=source_relative
+inputs:
+  - directory: proto

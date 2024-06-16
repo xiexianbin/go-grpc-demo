@@ -25,17 +25,16 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"google.golang.org/protobuf/types/known/emptypb"
 
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 	"github.com/xiexianbin/go-grpc-demo/pkg/util"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
 )
 
 type DemoServiceServer struct {
-	pb.UnimplementedDemoServiceServer
+	demov1.UnimplementedDemoServiceServer
 }
 
-func (s *DemoServiceServer) Sum(ctx context.Context, numRequest *pb.NumRequest) (*pb.NumResponse, error) {
+func (s *DemoServiceServer) Sum(ctx context.Context, sumRequest *demov1.SumRequest) (*demov1.SumResponse, error) {
 	for i := 0; i < 5; i++ {
 		if ctx.Err() == context.Canceled {
 			return nil, status.Errorf(codes.Canceled, "canceled by client")
@@ -43,41 +42,38 @@ func (s *DemoServiceServer) Sum(ctx context.Context, numRequest *pb.NumRequest) 
 		time.Sleep(1 * time.Second)
 	}
 
-	numResponse := &pb.NumResponse{
-		Result: numRequest.Nums[0] + numRequest.Nums[1],
-	}
-	return numResponse, nil
+	return &demov1.SumResponse{
+		Result: sumRequest.Nums[0] + sumRequest.Nums[1],
+	}, nil
 }
 
-func (s *DemoServiceServer) Diff(ctx context.Context, numRequest *pb.NumRequest) (*pb.NumResponse, error) {
-	numResponse := &pb.NumResponse{
-		Result: numRequest.Nums[0] - numRequest.Nums[1],
-	}
-	return numResponse, nil
+func (s *DemoServiceServer) Diff(ctx context.Context, diffRequest *demov1.DiffRequest) (*demov1.DiffResponse, error) {
+	return &demov1.DiffResponse{
+		Result: diffRequest.Nums[0] - diffRequest.Nums[1],
+	}, nil
 }
 
-func (s *DemoServiceServer) Version(ctx context.Context, empty *emptypb.Empty) (*pb.VersionResponse, error) {
-	version := &pb.VersionResponse{
+func (s *DemoServiceServer) Version(ctx context.Context, versionRequest *demov1.VersionRequest) (*demov1.VersionResponse, error) {
+	return &demov1.VersionResponse{
 		Version: "v0.1.0",
-	}
-	return version, nil
+	}, nil
 }
 
-func (s *DemoServiceServer) ReadFile(ctx context.Context, filePath *pb.FilePath) (*pb.FileResponse, error) {
-	_, err := os.Stat(filePath.GetPath())
+func (s *DemoServiceServer) ReadFile(ctx context.Context, readFileRequest *demov1.ReadFileRequest) (*demov1.ReadFileResponse, error) {
+	_, err := os.Stat(readFileRequest.GetPath())
 	if err != nil {
 		// os.IsNotExist(err)
-		message := fmt.Sprintf("file path %s not exist", filePath.GetPath())
+		message := fmt.Sprintf("file path %s not exist", readFileRequest.GetPath())
 		log.Print(message)
 		return nil, &util.ServerError{Message: message}
 	}
 
-	fileContent, err := os.ReadFile(filePath.GetPath())
+	fileContent, err := os.ReadFile(readFileRequest.GetPath())
 	if err != nil {
 		message := fmt.Sprintf("read file error %v", err)
 		log.Print(message)
 		return nil, &util.ServerError{Message: message}
 	}
 
-	return &pb.FileResponse{Content: fileContent}, nil
+	return &demov1.ReadFileResponse{Content: fileContent}, nil
 }

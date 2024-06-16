@@ -23,7 +23,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 )
 
 func main() {
@@ -35,8 +35,8 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewDemoServiceClient(conn)
-	resp, err := client.Sum(context.Background(), &pb.NumRequest{
+	client := demov1.NewDemoServiceClient(conn)
+	resp, err := client.Sum(context.Background(), &demov1.SumRequest{
 		Nums: []int64{1, 2},
 	})
 	if err != nil {

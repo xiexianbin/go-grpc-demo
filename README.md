@@ -253,8 +253,7 @@ $ go run ./main.go --help
     	server crt file path
   -server-key string
     	server key file path
-$ go run ./main.go -ca-crt ../conf/ca.pem -server-crt ../conf/server/server.crt -server-key ../con
-f/server/server.key
+$ go run ./main.go -ca-crt ../conf/ca.pem -server-crt ../conf/server/server.crt -server-key ../conf/server/server.key
 2024/06/09 11:59:13 grpc server listen on [::]:8000
 
 # xca
@@ -337,7 +336,7 @@ $ go run main.go --help
         client key file path
   -help
         show help message
-$ go run main.go -client-crt ../server.crt -client-key ../server.key
+$ go run main.go -client-crt ../server.crt
 2024/06/09 20:29:32 sum: 3
 
 $ curl 127.0.0.1:8000

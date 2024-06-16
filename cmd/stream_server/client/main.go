@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 )
 
 func main() {
@@ -37,24 +37,24 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewStreamServiceClient(conn)
-	err = callList(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "callList", Value: 0}})
+	client := demov1.NewStreamServiceClient(conn)
+	err = callList(client, &demov1.ListRequest{Pt: &demov1.StreamPoint{Name: "callList", Value: 0}})
 	if err != nil {
 		log.Fatalf("callList err: %s", err)
 	}
 
-	err = callRecord(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "callRecord", Value: 0}})
+	err = callRecord(client, &demov1.RecordRequest{Pt: &demov1.StreamPoint{Name: "callRecord", Value: 0}})
 	if err != nil {
 		log.Fatalf("callRecord err: %s", err)
 	}
 
-	err = callRoute(client, &pb.StreamRequest{Pt: &pb.StreamPoint{Name: "callRoute", Value: 0}})
+	err = callRoute(client, &demov1.RouteRequest{Pt: &demov1.StreamPoint{Name: "callRoute", Value: 0}})
 	if err != nil {
 		log.Fatalf("callRoute err: %s", err)
 	}
 }
 
-func callList(client pb.StreamServiceClient, r *pb.StreamRequest) error {
+func callList(client demov1.StreamServiceClient, r *demov1.ListRequest) error {
 	stream, err := client.List(context.Background(), r)
 	if err != nil {
 		return err
@@ -73,7 +73,7 @@ func callList(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 	return nil
 }
 
-func callRecord(client pb.StreamServiceClient, r *pb.StreamRequest) error {
+func callRecord(client demov1.StreamServiceClient, r *demov1.RecordRequest) error {
 	stream, err := client.Record(context.Background())
 	if err != nil {
 		return err
@@ -96,7 +96,7 @@ func callRecord(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 	return nil
 }
 
-func callRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
+func callRoute(client demov1.StreamServiceClient, r *demov1.RouteRequest) error {
 	stream, err := client.Route(context.Background())
 	if err != nil {
 		return err
@@ -108,7 +108,7 @@ func callRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 			return err
 		}
 
-		resp := pb.StreamResponse{}
+		resp := demov1.RecordResponse{}
 		err = stream.RecvMsg(&resp)
 		if err == io.EOF {
 			break
@@ -119,6 +119,5 @@ func callRoute(client pb.StreamServiceClient, r *pb.StreamRequest) error {
 
 		log.Printf("callRoute resp pt: %v", resp.Pt)
 	}
-	stream.CloseSend()
-	return nil
+	return stream.CloseSend()
 }

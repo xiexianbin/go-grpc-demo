@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package demo.v1;
+
+option go_package = "github.com/xiexianbin/go-grpc-demo/proto";
+
+message StreamPoint {
+  string name = 1;
+  int32 value = 2;
+}
+
+message ListRequest {
+  StreamPoint pt = 1;
+}
+
+message ListResponse {
+  StreamPoint pt = 1;
+}
+
+message RecordRequest {
+  StreamPoint pt = 1;
+}
+
+message RecordResponse {
+  StreamPoint pt = 1;
+}
+
+message RouteRequest {
+  StreamPoint pt = 1;
+}
+
+message RouteResponse {
+  StreamPoint pt = 1;
+}
+
+service StreamService {
+  // 服务器端流式 RPC
+  rpc List(ListRequest) returns (stream ListResponse) {}
+
+  // 客户端流式 RPC
+  rpc Record(stream RecordRequest) returns (RecordResponse) {}
+
+  // 双向流式 RPC
+  rpc Route(stream RouteRequest) returns (stream RouteResponse) {}
+}

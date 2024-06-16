@@ -25,13 +25,13 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"google.golang.org/grpc"
 
 	simplejaeger "github.com/xiexianbin/go-grpc-demo/cmd/simple_jaeger"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
+	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
 )
 
 func main() {
@@ -84,7 +84,7 @@ func main() {
 		),
 	}
 	server := grpc.NewServer(opts...)
-	pb.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
+	demov1.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
 
 	// Listener
 	addr := "0.0.0.0:8000"
@@ -100,5 +100,5 @@ func main() {
 		log.Println("grpc server closed.")
 	}(listener)
 	log.Printf("listen at %s", addr)
-	server.Serve(listener)
+	_ = server.Serve(listener)
 }
