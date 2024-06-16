@@ -4,6 +4,131 @@ golang grpc demo
 
 ## Usage
 
+```
+make help
+
+# use buf generate proto code
+make proto/all
+```
+
+## Demo
+
+```
+$ tree .
+.
+├── LICENSE
+├── Makefile
+├── README.md
+├── buf.gen.yaml
+├── buf.lock
+├── buf.yaml  # buf.build config for proto
+├── cmd
+│   ├── simple
+│   │   ├── client
+│   │   │   └── main.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_auth
+│   │   ├── client
+│   │   │   └── main.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_ca
+│   │   ├── client
+│   │   │   └── main.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_deadline
+│   │   ├── client
+│   │   │   └── main.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_grpc_gateway
+│   │   ├── grpc_client
+│   │   │   └── main.go
+│   │   └── server
+│   │       ├── README.md
+│   │       ├── main.go
+│   │       └── swagger-ui
+│   ├── simple_http
+│   │   ├── client
+│   │   │   └── main.go
+│   │   ├── server
+│   │   │   └── main.go
+│   ├── simple_interceptor
+│   │   ├── client
+│   │   │   └── main.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_jaeger
+│   │   ├── client
+│   │   │   └── main.go
+│   │   ├── otel.go
+│   │   └── server
+│   │       └── main.go
+│   ├── simple_tls
+│   │   ├── client
+│   │   │   └── main.go
+│   │   ├── server
+│   │       └── main.go
+│   └── stream_server
+│       ├── client
+│       │   └── main.go
+│       └── server
+│           └── main.go
+├── gen
+│   ├── go  # gen golang json file
+│   │   ├── demo
+│   │   │   └── v1
+│   │   │       ├── demo.pb.go
+│   │   │       ├── demo.pb.gw.go
+│   │   │       ├── demo_grpc.pb.go
+│   │   │       ├── stream.pb.go
+│   │   │       └── stream_grpc.pb.go
+│   │   ├── google
+│   │   │   └── api
+│   │   │       ├── annotations.pb.go
+│   │   │       └── http.pb.go
+│   │   └── grpc
+│   │       └── health
+│   │           └── v1
+│   │               ├── health.pb.go
+│   │               └── health_grpc.pb.go
+│   ├── swagger  # gen swagger json file
+│   │   ├── demo
+│   │   │   └── v1
+│   │   │       ├── demo.swagger.json
+│   │   │       └── stream.swagger.json
+│   │   ├── google
+│   │   │   └── api
+│   │   │       ├── annotations.swagger.json
+│   │   │       └── http.swagger.json
+│   │   └── grpc
+│   │       └── health
+│   │           └── v1
+│   │               └── health.swagger.json
+│   └── ts  # gen swagger ts file
+│       └── demo
+├── go.mod
+├── go.sum
+├── pkg
+│   ├── demo
+│   │   └── demo.go
+│   ├── interceptor
+│   │   ├── log.go
+│   │   └── recover.go
+│   ├── stream
+│   │   └── stream.go
+│   └── util
+│       └── error.go
+├── proto
+    ├── buf.md
+    └── demo
+        └── v1
+            ├── demo.proto
+            └── stream.proto
+```
+
 ### simple
 
 ```
@@ -313,7 +438,7 @@ Organizational Unit Name (eg, section) []:
 Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
 Email Address []:
 
-$ mv cmd/simple_tls/server.{key, crt} cmd/simple_http
+$ cp cmd/simple_tls/server{.key,.crt} cmd/simple_http
 
 # server
 $ cd cmd/simple_http/server
@@ -410,6 +535,57 @@ $ go run main.go
 
 - open http://localhost:16686/search and search `Service: go-grpc-demo` get trace detail
 
+### simple_grpc_gateway
+
+```
+# generate tls key and cert to cmd/simple_tls/server.{key, crt}
+$ make tls
+...
+Country Name (2 letter code) [AU]:
+State or Province Name (full name) [Some-State]:
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:go-grpc-demo
+Email Address []:
+
+$ cp cmd/simple_tls/server{.key,.crt} cmd/simple_grpc_gateway
+
+$ make proto/all
+$ cp -rp gen/swagger/ cmd/simple_grpc_gateway/server/swagger-ui
+
+# server
+$ cd cmd/simple_grpc_gateway/server
+$ go run main.go  --help
+  -crt-name string
+    	server crt name, default is go-grpc-demo (default "go-grpc-demo")
+  -help
+    	show help message
+  -server-crt string
+    	server crt file path
+  -server-key string
+    	server key file path
+$ go run main.go -server-crt ../server.crt -server-key ../server.key
+2024/06/16 19:40:22 application/grpc
+
+# grpc client
+$ cd cmd/simple_grpc_gateway/grpc_client
+$ go run main.go -client-crt ../server.crt
+2024/06/16 19:40:27 sum: 3
+2024/06/16 21:32:02 application/grpc
+2024/06/16 21:32:07 application/x-www-form-urlencoded
+2024/06/16 21:32:07 application/grpc
+
+$ http client
+$ curl -X POST -k https://localhost:8000/version --cert ../server.crt --key ../server.key
+{"version":"v0.1.0"}
+
+$ curl -X POST -k https://localhost:8000/sum -d '{"nums": [1, 2]}' --cert ../server.crt --key ../server.key
+{"result":"3"}
+
+# swagger by visit https://0.0.0.0:8000/swagger-ui/
+```
+
 ## F&Q
 
 ### certificate relies on legacy Common Name field, use SANs instead
@@ -425,3 +601,39 @@ $ go run main.go
 ### code = Unavailable desc = connection error: desc = "error reading server preface: http2: frame too large"
 
 use TLS
+
+### transport: authentication handshake failed: tls: failed to verify certificate: x509: "go-grpc-demo" certificate is not standards compliant
+
+visit https://0.0.0.0:8000/version error:
+
+```
+{"code":14, "message":"connection error: desc = \"transport: authentication handshake failed: tls: failed to verify certificate: x509: “go-grpc-demo” certificate is not standards compliant\"", "details":[]}
+```
+
+- reason
+
+`openssl req -new -x509 -days 7200` day to long? try `-days 365`
+
+### transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate signed by unknown authority
+
+visit https://0.0.0.0:8000/version error:
+
+```
+{"code":14, "message":"connection error: desc = \"transport: authentication handshake failed: tls: failed to verify certificate: x509: certificate signed by unknown authority\"", "details":[]}
+```
+
+- os trust self sign crt, [如何信任自签 CA 证书](https://www.xiexianbin.cn/linux/openssl/how-to-trust-self-sign-ca/index.html)
+
+### transport: authentication handshake failed: tls: failed to verify certificate: x509: cannot validate certificate for 0.0.0.0 because it doesn't contain any IP SANs
+
+visit https://0.0.0.0:8000/version error:
+
+```
+{"code":14, "message":"connection error: desc = \"transport: authentication handshake failed: tls: failed to verify certificate: x509: cannot validate certificate for 0.0.0.0 because it doesn't contain any IP SANs\"", "details":[]}
+```
+
+- add IP to cert
+
+```
+openssl req -new -x509 -sha256 .. -addext "subjectAltName = DNS:go-grpc-demo,IP:0.0.0.0"
+```
