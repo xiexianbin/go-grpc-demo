@@ -1,3 +1,9 @@
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
 .PHONY: protoc
 protoc:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -55,8 +61,33 @@ proto/generate: proto/vendor
 proto/vendor:
 	buf dep update
 
+.PHONY: go/deps
+go/deps:
+	go mod tidy
+
+GOFUMPT_VERSION := v0.6.0
+gofumpt:
+ifeq (, $(shell command -v gofumpt >/dev/null))
+	go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
+GOFUMPT=$(GOBIN)/gofumpt
+else
+GOFUMPT=$(shell command -v gofumpt)
+endif
+
+# Rather than running this over and over we recommend running gofumpt on save with your editor.
+# Check https://github.com/mvdan/gofumpt#installation for instructions.
+.PHONY: go/fmt
+go/fmt: gofumpt
+	$(GOFUMPT) -l -w $(shell go list -f {{.Dir}} ./... | grep -v gen/proto)
+
+GOLANGCI_LINT_VERSION := v1.59.1
+golangci-lint:
+ifeq (, $(shell command -v golangci-lint >/dev/null))
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+endif
+
 .PHONY: go/lint
-go/lint:
+go/lint: golangci-lint
 	golangci-lint run --fix
   # go mod tidy
 	# golangci-lint run --fix --verbose --concurrency 4 --timeout 5m --enable goimports
