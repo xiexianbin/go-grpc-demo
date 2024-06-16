@@ -28,8 +28,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
 )
 
 var (
@@ -88,7 +88,7 @@ func main() {
 	}
 
 	server := grpc.NewServer(grpc.Creds(creds))
-	pb.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
+	demov1.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
 
 	// Listener
 	addr := "0.0.0.0:8000"

@@ -1,3 +1,9 @@
+ifeq (,$(shell go env GOBIN))
+GOBIN=$(shell go env GOPATH)/bin
+else
+GOBIN=$(shell go env GOBIN)
+endif
+
 .PHONY: protoc
 protoc:
 	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
@@ -8,7 +14,7 @@ protoc:
 .PHONY: tls
 tls:
 	openssl ecparam -genkey -name secp384r1 -out cmd/simple_tls/server.key
-	openssl req -new -x509 -sha256 -key cmd/simple_tls/server.key -out cmd/simple_tls/server.crt -days 3650 -addext "subjectAltName = DNS:go-grpc-demo"
+	openssl req -new -x509 -sha256 -key cmd/simple_tls/server.key -out cmd/simple_tls/server.crt -days 365 -addext "subjectAltName = DNS:go-grpc-demo,IP:0.0.0.0"
 
 .PHONY: self-ca
 self-ca:
@@ -28,3 +34,60 @@ self-ca:
 	openssl ecparam -genkey -name secp384r1 -out cmd/simple_ca/conf/client/client.key
 	openssl req -new -key cmd/simple_ca/conf/client/client.key -out cmd/simple_ca/conf/client/client.csr # -addext "subjectAltName = DNS:go-grpc-demo"
 	openssl x509 -req -sha256 -CA cmd/simple_ca/conf/ca.pem -CAkey cmd/simple_ca/conf/ca.key -CAcreateserial -days 3650 -in cmd/simple_ca/conf/client/client.csr -out cmd/simple_ca/conf/client/client.crt -extfile cmd/simple_ca/conf/san.cnf
+
+.PHONY: proto/all
+proto/all: proto/vendor proto/format proto/lint proto/generate
+
+.PHONY: proto/lint
+proto/lint:
+	# docker run --volume ${PWD}:/workspace --workdir /workspace bufbuild/buf lint
+	buf lint
+	buf breaking -v --against '.git#branch=main,subdir=proto'
+
+.PHONY: proto/format
+proto/format:
+	# docker run --volume ${PWD}:/workspace --workdir /workspace bufbuild/buf format
+	buf format -w
+
+.PHONY: proto/generate
+proto/generate: proto/vendor
+	# Generate just the annotations and http protos.
+	buf generate buf.build/googleapis/googleapis --path google/api/annotations.proto --path google/api/http.proto
+	buf generate buf.build/grpc/grpc --path grpc/health/
+	# docker run --volume ${PWD}:/workspace --workdir /workspace bufbuild/buf generate
+	buf generate
+
+.PHONY: proto/vendor
+proto/vendor:
+	buf dep update
+
+.PHONY: go/deps
+go/deps:
+	go mod tidy
+
+GOFUMPT_VERSION := v0.6.0
+gofumpt:
+ifeq (, $(shell command -v gofumpt >/dev/null))
+	go install mvdan.cc/gofumpt@$(GOFUMPT_VERSION)
+GOFUMPT=$(GOBIN)/gofumpt
+else
+GOFUMPT=$(shell command -v gofumpt)
+endif
+
+# Rather than running this over and over we recommend running gofumpt on save with your editor.
+# Check https://github.com/mvdan/gofumpt#installation for instructions.
+.PHONY: go/fmt
+go/fmt: gofumpt
+	$(GOFUMPT) -l -w $(shell go list -f {{.Dir}} ./... | grep -v gen/proto)
+
+GOLANGCI_LINT_VERSION := v1.59.1
+golangci-lint:
+ifeq (, $(shell command -v golangci-lint >/dev/null))
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@${GOLANGCI_LINT_VERSION}
+endif
+
+.PHONY: go/lint
+go/lint: golangci-lint
+	golangci-lint run --fix
+  # go mod tidy
+	# golangci-lint run --fix --verbose --concurrency 4 --timeout 5m --enable goimports

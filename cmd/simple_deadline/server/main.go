@@ -22,13 +22,13 @@ import (
 
 	"google.golang.org/grpc"
 
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
 )
 
 func main() {
 	server := grpc.NewServer()
-	pb.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
+	demov1.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
 
 	// Listener
 	addr := "0.0.0.0:8000"
@@ -45,5 +45,5 @@ func main() {
 	}(listener)
 	log.Printf("listen at %s", addr)
 
-	server.Serve(listener)
+	_ = server.Serve(listener)
 }

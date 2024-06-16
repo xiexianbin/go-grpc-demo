@@ -1,0 +1,16 @@
+# https://www.xiexianbin.cn/network/protocol-buffer/buf/
+version: v2
+modules:
+  - path: proto
+    name: buf.build/xiexianbin/go-grpc-demo
+lint:
+  use:
+    - DEFAULT
+  ignore:
+    - proto/google/type/annotations.proto
+breaking:
+  use:
+    - FILE
+deps:
+  - buf.build/googleapis/googleapis
+  # - buf.build/grpc-ecosystem/grpc-gateway

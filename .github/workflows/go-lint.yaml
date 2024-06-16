@@ -1,0 +1,42 @@
+name: golangci-lint
+on:
+  push:
+    tags:
+      - v*
+    branches:
+    - main
+    - dev
+    - release-*
+  pull_request:
+    branches:
+    - main
+    - release-*
+  merge_group:
+    branches:
+    - main
+
+jobs:
+  lint:
+    name: Go Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Set up Go
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
+        with:
+          go-version: v1.21
+          cache: false
+
+      - name: Install dependencies
+        run: make go/deps
+
+      # - name: Build
+      #   run: make go/build
+
+      - name: Format
+        run: make go/fmt && git diff --exit-code # ':!ui/packages/app/web/build'
+
+      - name: Lint
+        run: make go/lint

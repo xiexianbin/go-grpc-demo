@@ -1,0 +1,85 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "demo/v1/stream.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "StreamService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ListResponse": {
+      "type": "object",
+      "properties": {
+        "pt": {
+          "$ref": "#/definitions/v1StreamPoint"
+        }
+      }
+    },
+    "v1RecordResponse": {
+      "type": "object",
+      "properties": {
+        "pt": {
+          "$ref": "#/definitions/v1StreamPoint"
+        }
+      }
+    },
+    "v1RouteResponse": {
+      "type": "object",
+      "properties": {
+        "pt": {
+          "$ref": "#/definitions/v1StreamPoint"
+        }
+      }
+    },
+    "v1StreamPoint": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "value": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    }
+  }
+}

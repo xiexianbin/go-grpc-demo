@@ -24,9 +24,8 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/protobuf/types/known/emptypb"
 
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 )
 
 var (
@@ -63,19 +62,19 @@ func main() {
 	}
 	defer conn.Close()
 
-	rpcClient := pb.NewDemoServiceClient(conn)
+	rpcClient := demov1.NewDemoServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	// version
-	version, err := rpcClient.Version(ctx, &emptypb.Empty{})
+	version, err := rpcClient.Version(ctx, &demov1.VersionRequest{})
 	if err != nil {
 		log.Fatalf("error happen when call gRPC client: %s", err.Error())
 	}
 	log.Printf("version: %s", version)
 
 	// sum
-	nums := &pb.NumRequest{
+	nums := &demov1.SumRequest{
 		Nums: []int64{1, 2},
 	}
 	sum, err := rpcClient.Sum(ctx, nums)
@@ -85,14 +84,17 @@ func main() {
 	log.Printf("sum: %s", sum)
 
 	// diff
-	diff, err := rpcClient.Diff(ctx, nums)
+	nums2 := &demov1.DiffRequest{
+		Nums: []int64{1, 2},
+	}
+	diff, err := rpcClient.Diff(ctx, nums2)
 	if err != nil {
 		log.Fatalf("error happen when call gRPC client: %s", err.Error())
 	}
 	log.Printf("diff: %s", diff)
 
 	// read file
-	filePath := &pb.FilePath{
+	filePath := &demov1.ReadFileRequest{
 		Path: "/etc/hosts",
 	}
 	fileContent, err := rpcClient.ReadFile(ctx, filePath)

@@ -1,0 +1,53 @@
+syntax = "proto3";
+// import "google/protobuf/empty.proto";
+
+package demo.v1;
+
+// annotations.proto download from https://github.com/googleapis/googleapis/blob/master/google/api/annotations.proto
+import "google/api/annotations.proto";
+
+option go_package = "github.com/xiexianbin/go-grpc-demo/proto";
+
+message SumRequest {
+  repeated int64 nums = 1;
+}
+
+message SumResponse {
+  int64 result = 1;
+}
+
+message DiffRequest {
+  repeated int64 nums = 1;
+}
+
+message DiffResponse {
+  int64 result = 1;
+}
+
+message ReadFileRequest {
+  string path = 1;
+}
+
+message ReadFileResponse {
+  bytes content = 1;
+}
+
+message VersionRequest {}
+
+message VersionResponse {
+  string version = 1;
+}
+
+service DemoService {
+  rpc Sum(SumRequest) returns (SumResponse) {
+    option (google.api.http) = {
+      post: "/sum"
+      body: "*"
+    };
+  }
+  rpc Diff(DiffRequest) returns (DiffResponse) {}
+  rpc ReadFile(ReadFileRequest) returns (ReadFileResponse) {}
+  rpc Version(VersionRequest) returns (VersionResponse) {
+    option (google.api.http) = {get: "/version"};
+  }
+}

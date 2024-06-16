@@ -23,12 +23,13 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/xiexianbin/go-grpc-demo/pkg/stream"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 )
 
 func main() {
 	server := grpc.NewServer()
-	pb.RegisterStreamServiceServer(server, &stream.StreamServiceServer{})
+	demov1.RegisterStreamServiceServer(server, &stream.StreamServiceServer{})
 
 	// Listener
 	addr := "0.0.0.0:8000"
@@ -45,5 +46,7 @@ func main() {
 	}(listener)
 	log.Printf("listen at %s", addr)
 
-	server.Serve(listener)
+	if err := server.Serve(listener); err != nil {
+		panic(err)
+	}
 }

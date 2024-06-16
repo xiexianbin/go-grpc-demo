@@ -29,7 +29,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/xiexianbin/go-grpc-demo/pkg/demo"
-	pb "github.com/xiexianbin/go-grpc-demo/proto"
+
+	demov1 "github.com/xiexianbin/go-grpc-demo/gen/go/demo/v1"
 )
 
 var (
@@ -68,19 +69,19 @@ func main() {
 
 	// gRPC method
 	server := grpc.NewServer(grpc.Creds(crt))
-	pb.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
+	demov1.RegisterDemoServiceServer(server, &demo.DemoServiceServer{})
 
 	// http method
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello word!"))
+		_, _ = w.Write([]byte("hello word!"))
 	})
 
 	// Listener
 	addr := "0.0.0.0:8000"
 	log.Printf("listen at %s", addr)
 	if serverCrtPath != "" && serverKeyPath != "" {
-		http.ListenAndServeTLS(addr, serverCrtPath, serverKeyPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err = http.ListenAndServeTLS(addr, serverCrtPath, serverKeyPath, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			log.Println(r.Header.Get("Content-Type"))
 			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 				server.ServeHTTP(w, r)
@@ -88,14 +89,20 @@ func main() {
 				mux.ServeHTTP(w, r)
 			}
 		}))
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		// use h2c without tls by HTTP/2
-		http.ListenAndServe(addr, h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		err = http.ListenAndServe(addr, h2c.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if r.ProtoMajor == 2 && strings.Contains(r.Header.Get("Content-Type"), "application/grpc") {
 				server.ServeHTTP(w, r)
 			} else {
 				mux.ServeHTTP(w, r)
 			}
 		}), &http2.Server{}))
+		if err != nil {
+			panic(err)
+		}
 	}
 }
