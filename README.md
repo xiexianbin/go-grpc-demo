@@ -1,6 +1,8 @@
 # go-grpc-demo
 
 golang grpc demo
+- https://buf.build/xiexianbin/go-grpc-demo
+- https://buf.build/xiexianbin/go-grpc-demo/docs/main:demo.v1
 
 ## Usage
 
